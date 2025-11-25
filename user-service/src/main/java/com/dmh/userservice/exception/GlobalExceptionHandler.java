@@ -1,4 +1,4 @@
-package com.dmh.accountservice.exception;
+package com.dmh.userservice.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -21,11 +21,10 @@ public class GlobalExceptionHandler {
                         "method", request.getMethod()));
     }
 
-
-    @ExceptionHandler(UserAlreadyHasAccountException.class)
-    public ResponseEntity<?> handleUserAlreadyHasAccountException (UserAlreadyHasAccountException e) {
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleUserExists(UserAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("error", "Conflict", "message", e.getMessage()));
+                .body(Map.of("error", "User Conflict", "message", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -40,6 +39,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
-
 
 }

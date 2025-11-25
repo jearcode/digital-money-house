@@ -4,6 +4,7 @@ import com.dmh.userservice.dto.AccountRequestDto;
 import com.dmh.userservice.dto.LogoutRequestDto;
 import com.dmh.userservice.dto.UserRegisterDto;
 import com.dmh.userservice.entity.User;
+import com.dmh.userservice.exception.UserAlreadyExistsException;
 import com.dmh.userservice.repository.AccountFeignClient;
 import com.dmh.userservice.repository.UserRepository;
 import jakarta.ws.rs.core.Response;
@@ -57,10 +58,10 @@ public class UserService {
     public User register (UserRegisterDto userDto) {
 
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new RuntimeException("Email is already registered");
+            throw new UserAlreadyExistsException("Email is already registered: " + userDto.getEmail());
         }
         if (userRepository.existsByDni(userDto.getDni())) {
-            throw new RuntimeException("Email address already exists");
+            throw new UserAlreadyExistsException("DNI is already registered: " + userDto.getDni());
         }
 
         UserRepresentation kcUser = getUserRepresentation(userDto);

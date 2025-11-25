@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +30,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login (@RequestBody LoginRequestDto loginRequest) {
+    public ResponseEntity<TokenResponseDto> login (@Valid @RequestBody LoginRequestDto loginRequest){
         TokenResponseDto token = authService.login(loginRequest);
         return ResponseEntity.ok(token);
     }

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,7 @@ public class AccountController {
             @ApiResponse(responseCode = "403", description = "Forbidden (Requires valid Service Token)")
     })
     @PostMapping
-    public ResponseEntity<AccountDto> create(@RequestBody AccountRequestDto request) {
+    public ResponseEntity<AccountDto> create(@Valid @RequestBody AccountRequestDto request) {
 
         AccountDto newAccount = accountService.createAccount(request.getUserId());
 

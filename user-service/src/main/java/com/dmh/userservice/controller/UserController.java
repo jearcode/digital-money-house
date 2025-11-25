@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +34,7 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal server error (Keycloak or Database failure)")
     })
     @PostMapping("/register")
-    public ResponseEntity<User> register (@RequestBody UserRegisterDto userDto) {
+    public ResponseEntity<User> register (@Valid @RequestBody UserRegisterDto userDto) {
 
         User createdUser = userService.register(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
@@ -43,7 +44,7 @@ public class UserController {
     @Operation(summary = "Logout user", description = "Invalidates the refresh token in Keycloak.")
     @ApiResponse(responseCode = "200", description = "Successfully logged out")
     @PostMapping("/logout")
-    public ResponseEntity<String> logout (@RequestBody LogoutRequestDto logoutRequest) {
+    public ResponseEntity<String> logout (@Valid @RequestBody LogoutRequestDto logoutRequest) {
         userService.logout(logoutRequest);
         return ResponseEntity.ok("Successfully logged out");
     }

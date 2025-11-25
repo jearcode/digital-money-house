@@ -2,6 +2,7 @@ package com.dmh.authservice.service;
 
 import com.dmh.authservice.dto.LoginRequestDto;
 import com.dmh.authservice.dto.TokenResponseDto;
+import com.dmh.authservice.exception.InvalidCredentialsException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 
 @Service
 public class AuthService {
@@ -30,7 +32,7 @@ public class AuthService {
         this.restTemplateBuilder = restTemplateBuilder;
     }
 
-    public TokenResponseDto login (LoginRequestDto loginRequest) {
+    public TokenResponseDto login (LoginRequestDto loginRequest){
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -51,8 +53,14 @@ public class AuthService {
                     TokenResponseDto.class
             );
             return response.getBody();
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new InvalidCredentialsException("Invalid username or password");
+
+        } catch (HttpClientErrorException.BadRequest e) {
+            throw new InvalidCredentialsException("Account is disabled or credentials are invalid");
+
         } catch (Exception e) {
-            throw new RuntimeException("Login failed: Invalid credentials or Keycloak error");
+            throw new RuntimeException("Authentication service unavailable. Please try again later.");
         }
 
 
