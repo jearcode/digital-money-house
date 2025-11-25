@@ -10,16 +10,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KeycloakConfig {
 
-    @Value("${dhm.keycloak.server-url}")
+    @Value("${dmh.keycloak.server-url}")
     private String serverUrl;
 
-    @Value("${dhm.keycloak.realm}")
+    @Value("${dmh.keycloak.realm}")
     private String realm;
 
-    @Value("${dhm.keycloak.client-id}")
+    @Value("${dmh.keycloak.client-id}")
     private String clientId;
 
-    @Value("${dhm.keycloak.client-secret}")
+    @Value("${dmh.keycloak.client-secret}")
     private String clientSecret;
 
     @Bean

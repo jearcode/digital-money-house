@@ -30,7 +30,7 @@ public class UserService {
         this.accountFeignClient = accountFeignClient;
     }
 
-    @Value("${dhm.keycloak.realm}")
+    @Value("${dmh.keycloak.realm}")
     private String realm;
 
     public User register (UserRegisterDto userDto) {
