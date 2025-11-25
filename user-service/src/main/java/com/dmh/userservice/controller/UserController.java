@@ -1,5 +1,6 @@
 package com.dmh.userservice.controller;
 
+import com.dmh.userservice.dto.LogoutRequestDto;
 import com.dmh.userservice.dto.UserRegisterDto;
 import com.dmh.userservice.entity.User;
 import com.dmh.userservice.service.UserService;
@@ -26,6 +27,12 @@ public class UserController {
         User createdUser = userService.register(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout (@RequestBody LogoutRequestDto logoutRequest) {
+        userService.logout(logoutRequest);
+        return ResponseEntity.ok("Successfully logged out");
     }
 
 }
