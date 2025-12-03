@@ -84,6 +84,15 @@
         "attributes": {}
       },
       {
+        "id": "d26e5bf7-e02f-4201-bfee-5f5a0fb369d3",
+        "name": "SERVICE",
+        "description": "Service role",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "d3779807-e268-431e-9c32-c54b03750e46",
+        "attributes": {}
+      },
+      {
         "id": "e7354bad-1d9e-4d1b-879d-d7507caf4235",
         "name": "default-roles-digital-money-house",
         "description": "${role_default-roles}",
@@ -489,6 +498,7 @@
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": [
+        "SERVICE",
         "default-roles-digital-money-house"
       ],
       "clientRoles": {
