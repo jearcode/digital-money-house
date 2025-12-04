@@ -1,0 +1,19 @@
+package com.dmh.userservice.dto;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class UserResponseDto {
+
+    private Long id;
+    private String keycloakId;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String dni;
+    private String phone;
+    private AccountDto account;
+
+}

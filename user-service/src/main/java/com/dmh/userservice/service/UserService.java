@@ -1,8 +1,6 @@
 package com.dmh.userservice.service;
 
-import com.dmh.userservice.dto.AccountRequestDto;
-import com.dmh.userservice.dto.LogoutRequestDto;
-import com.dmh.userservice.dto.UserRegisterDto;
+import com.dmh.userservice.dto.*;
 import com.dmh.userservice.entity.User;
 import com.dmh.userservice.exception.UserAlreadyExistsException;
 import com.dmh.userservice.repository.AccountFeignClient;
@@ -55,7 +53,7 @@ public class UserService {
 
 
 
-    public User register (UserRegisterDto userDto) {
+    public UserResponseDto register (UserRegisterDto userDto) {
 
         if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new UserAlreadyExistsException("Email is already registered: " + userDto.getEmail());
@@ -86,13 +84,33 @@ public class UserService {
 
         User savedUser = userRepository.save(newUser);
 
-        String serviceToken = keycloak.tokenManager().getAccessToken().getToken();
+        AccountDto account = createAccount(savedUser.getId());
 
-        AccountRequestDto accountRequestDto = new AccountRequestDto(savedUser.getId());
-        accountFeignClient.createAccount(accountRequestDto, "Bearer " + serviceToken);
+        return buildUserResponse(savedUser, account);
 
-        return savedUser;
+    }
 
+    private AccountDto createAccount (Long userId) {
+        try {
+            String serviceToken = keycloak.tokenManager().getAccessToken().getToken();
+            AccountRequestDto accountRequestDto = new AccountRequestDto(userId);
+            return accountFeignClient.createAccount(accountRequestDto, "Bearer " + serviceToken);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating account for user " + userId, e);
+        }
+    }
+
+    private UserResponseDto buildUserResponse (User user, AccountDto account) {
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .keycloakId(user.getKeycloakId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .dni(user.getDni())
+                .phone(user.getPhone())
+                .account(account)
+                .build();
     }
 
     private static UserRepresentation getUserRepresentation(UserRegisterDto userDto) {

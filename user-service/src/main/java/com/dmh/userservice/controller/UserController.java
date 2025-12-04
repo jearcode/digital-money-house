@@ -2,7 +2,7 @@ package com.dmh.userservice.controller;
 
 import com.dmh.userservice.dto.LogoutRequestDto;
 import com.dmh.userservice.dto.UserRegisterDto;
-import com.dmh.userservice.entity.User;
+import com.dmh.userservice.dto.UserResponseDto;
 import com.dmh.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,9 +34,9 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal server error (Keycloak or Database failure)")
     })
     @PostMapping("/register")
-    public ResponseEntity<User> register (@Valid @RequestBody UserRegisterDto userDto) {
+    public ResponseEntity<UserResponseDto> register (@Valid @RequestBody UserRegisterDto userDto) {
 
-        User createdUser = userService.register(userDto);
+        UserResponseDto createdUser = userService.register(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         
     }
