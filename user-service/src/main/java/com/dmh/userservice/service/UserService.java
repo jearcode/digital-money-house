@@ -1,152 +1,73 @@
 package com.dmh.userservice.service;
 
-import com.dmh.userservice.dto.*;
+import com.dmh.userservice.dto.request.LogoutRequestDto;
+import com.dmh.userservice.dto.request.UserRegisterRequestDto;
+import com.dmh.userservice.dto.request.UserUpdateRequestDto;
+import com.dmh.userservice.dto.response.AccountResponseDto;
+import com.dmh.userservice.dto.response.UserResponseDto;
 import com.dmh.userservice.entity.User;
-import com.dmh.userservice.exception.UserAlreadyExistsException;
-import com.dmh.userservice.repository.AccountFeignClient;
+import com.dmh.userservice.exception.UserNotFoundException;
+import com.dmh.userservice.mapper.UserDtoMapper;
+import com.dmh.userservice.provider.account.AccountProvider;
 import com.dmh.userservice.repository.UserRepository;
-import jakarta.ws.rs.core.Response;
-import org.keycloak.admin.client.CreatedResponseUtil;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import com.dmh.userservice.service.user.UserLogoutService;
+import com.dmh.userservice.service.user.UserRegistrationService;
+import com.dmh.userservice.service.user.UserUpdateService;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
-import java.util.Collections;
 
 @Service
 public class UserService {
 
+    private final UserRegistrationService registrationService;
+    private final UserUpdateService updateService;
+    private final UserLogoutService logoutService;
     private final UserRepository userRepository;
-    private final Keycloak keycloak;
-    private final AccountFeignClient accountFeignClient;
+    private final AccountProvider accountProvider;
+    private final UserDtoMapper mapper;
 
-    private final RestTemplateBuilder restTemplateBuilder;
-
-    @Value("${dmh.keycloak.realm}")
-    private String realm;
-
-    @Value("${spring.security.oauth2.client.provider.keycloak.logout-uri}")
-    private String logoutUrl;
-
-    @Value("${spring.security.oauth2.client.registration.keycloak.client-id}")
-    private String clientId;
-
-    @Value("${spring.security.oauth2.client.registration.keycloak.client-secret}")
-    private String clientSecret;
-
-    public UserService (UserRepository userRepository, Keycloak keycloak,
-                        AccountFeignClient accountFeignClient, RestTemplateBuilder restTemplateBuilder) {
+    public UserService(
+            UserRegistrationService registrationService,
+            UserUpdateService updateService,
+            UserLogoutService logoutService,
+            UserRepository userRepository,
+            AccountProvider accountProvider,
+            UserDtoMapper mapper) {
+        this.registrationService = registrationService;
+        this.updateService = updateService;
+        this.logoutService = logoutService;
         this.userRepository = userRepository;
-        this.keycloak = keycloak;
-        this.accountFeignClient = accountFeignClient;
-        this.restTemplateBuilder = restTemplateBuilder;
+        this.accountProvider = accountProvider;
+        this.mapper = mapper;
     }
 
-
-
-    public UserResponseDto register (UserRegisterDto userDto) {
-
-        if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new UserAlreadyExistsException("Email is already registered: " + userDto.getEmail());
-        }
-        if (userRepository.existsByDni(userDto.getDni())) {
-            throw new UserAlreadyExistsException("DNI is already registered: " + userDto.getDni());
-        }
-
-        UserRepresentation kcUser = getUserRepresentation(userDto);
-
-        UsersResource usersResource = keycloak.realm(realm).users();
-        Response response = usersResource.create(kcUser);
-
-        if (response.getStatus() != 201) {
-            throw new RuntimeException("Failed to create user in identity provider: " + response.getStatusInfo());
-        }
-
-        String keycloakId = CreatedResponseUtil.getCreatedId(response);
-
-        User newUser = User.builder()
-                .keycloakId(keycloakId)
-                .firstName(userDto.getFirstName())
-                .lastName(userDto.getLastName())
-                .email(userDto.getEmail())
-                .dni(userDto.getDni())
-                .phone(userDto.getPhone())
-                .build();
-
-        User savedUser = userRepository.save(newUser);
-
-        AccountDto account = createAccount(savedUser.getId());
-
-        return buildUserResponse(savedUser, account);
-
+    // Registration
+    public UserResponseDto register(UserRegisterRequestDto userDto) {
+        return registrationService.registerUser(userDto);
     }
 
-    private AccountDto createAccount (Long userId) {
-        try {
-            String serviceToken = keycloak.tokenManager().getAccessToken().getToken();
-            AccountRequestDto accountRequestDto = new AccountRequestDto(userId);
-            return accountFeignClient.createAccount(accountRequestDto, "Bearer " + serviceToken);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating account for user " + userId, e);
-        }
+    // Update
+    public UserResponseDto updateUser(Long id, UserUpdateRequestDto userRequest){
+        return updateService.updateUser(id, userRequest);
     }
 
-    private UserResponseDto buildUserResponse (User user, AccountDto account) {
-        return UserResponseDto.builder()
-                .id(user.getId())
-                .keycloakId(user.getKeycloakId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .dni(user.getDni())
-                .phone(user.getPhone())
-                .account(account)
-                .build();
+    // Logout
+    public void logout(LogoutRequestDto logoutRequest) {
+        logoutService.logout(logoutRequest);
     }
 
-    private static UserRepresentation getUserRepresentation(UserRegisterDto userDto) {
-        UserRepresentation kcUser = new UserRepresentation();
-        kcUser.setUsername(userDto.getEmail());
-        kcUser.setEmail(userDto.getEmail());
-        kcUser.setFirstName(userDto.getFirstName());
-        kcUser.setLastName(userDto.getLastName());
-        kcUser.setEnabled(true);
-        kcUser.setEmailVerified(true);
-
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(userDto.getPassword());
-        credential.setTemporary(false);
-        kcUser.setCredentials(Collections.singletonList(credential));
-        return kcUser;
+    // Find by email
+    public UserResponseDto findByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        return mapper.toUserResponseDto(user);
     }
 
-    public void logout (LogoutRequestDto logoutRequest) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-
-        map.add("client_id", clientId);
-        map.add("client_secret", clientSecret);
-        map.add("refresh_token", logoutRequest.getRefreshToken());
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        try {
-            restTemplateBuilder.build().postForEntity(logoutUrl, request, Void.class);
-        } catch (Exception e) {
-            System.out.println("Keycloak logout failed: " + e.getMessage());
-        }
+    // Find by id
+    public UserResponseDto findById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        AccountResponseDto accountResponseDto = accountProvider.findAccountByUserId(id);
+        return mapper.toUserResponseDto(user, accountResponseDto);
     }
 
 

@@ -3,6 +3,8 @@ package com.dmh.userservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Getter @Setter
@@ -25,6 +27,9 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(name = "last_email_update")
+    private LocalDateTime lastEmailUpdate;
 
     @Column(nullable = false, unique = true)
     private String dni;

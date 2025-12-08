@@ -1,4 +1,4 @@
-package com.dmh.userservice.dto;
+package com.dmh.userservice.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +14,6 @@ public class UserResponseDto {
     private String email;
     private String dni;
     private String phone;
-    private AccountDto account;
+    private AccountResponseDto account;
 
 }
