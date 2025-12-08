@@ -488,6 +488,52 @@
   "webAuthnPolicyPasswordlessExtraOrigins": [],
   "users": [
     {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "username": "admin-service-user",
+      "emailVerified": true,
+      "firstName": "admin",
+      "lastName": "admin",
+      "enabled": true,
+      "createdTimestamp": 1764024253000,
+      "email": "admin@admin.com",
+      "totp": false,
+      "disableableCredentialTypes": [
+        "password"
+      ],
+      "requiredActions": [],
+      "realmRoles": [
+        "SERVICE",
+        "admin",
+        "default-roles-digital-money-house"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "realm-admin",
+          "manage-users",
+          "manage-realm",
+          "view-users",
+          "query-users"
+        ],
+        "account": [
+          "manage-account",
+          "view-profile"
+        ]
+      },
+      "notBefore": 0,
+      "groups": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": true
+        }
+      ],
+      "attributes": {
+        "created_by": "admin",
+        "account_type": "service_admin"
+      }
+    },
+    {
       "id": "7bd36e96-83a2-43a3-9ce0-6f29d6578778",
       "username": "service-account-user-service-client",
       "emailVerified": false,
