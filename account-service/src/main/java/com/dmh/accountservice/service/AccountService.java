@@ -1,33 +1,49 @@
 package com.dmh.accountservice.service;
 
-import com.dmh.accountservice.dto.AccountDto;
+import com.dmh.accountservice.dto.request.CardCreateRequestDto;
+import com.dmh.accountservice.dto.response.AccountDto;
+import com.dmh.accountservice.dto.response.CardResponseDto;
 import com.dmh.accountservice.entity.Account;
+import com.dmh.accountservice.exception.AccountNotFoundException;
 import com.dmh.accountservice.exception.UserAlreadyHasAccountException;
+import com.dmh.accountservice.mapper.AccountDtoMapper;
 import com.dmh.accountservice.repository.AccountRepository;
+import com.dmh.accountservice.util.AccountNumberGenerator;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Random;
+import java.util.List;
 
 @Service
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final AccountDtoMapper accountMapper;
+    private final CardService cardService;
+    private final AccountNumberGenerator numberGenerator;
 
-    private final String[] WORDS = { "BeanRx", "JavRex", "SrvCore", "ObjFlow", "StrmFx", "HeapFx", "ThrdX", "ByteOps", "JaxRun", "BeanFx", "RsrcIO", "MiniGC", "JetFlow", "SyncUp", "FluxIO", "NPEKing", "Log4U", "GCByte", "StackR", "ProcFx", "SrvX", "ByteX", "CoreIO" };
-
-    public AccountService (AccountRepository accountRepository) {
+    public AccountService(
+            AccountRepository accountRepository,
+            AccountDtoMapper accountMapper,
+            CardService cardService,
+            AccountNumberGenerator numberGenerator) {
         this.accountRepository = accountRepository;
+        this.accountMapper = accountMapper;
+        this.cardService = cardService;
+        this.numberGenerator = numberGenerator;
     }
 
-    public AccountDto createAccount (Long userId) {
+
+    public AccountDto createAccount(Long userId) {
 
         if (accountRepository.findByUserId(userId).isPresent()) {
-            throw new UserAlreadyHasAccountException("User with ID " + userId + " already has a registered account.");
+            throw new UserAlreadyHasAccountException(
+                    "User with ID " + userId + " already has a registered account."
+            );
         }
 
-        String cvu = generateCvu();
-        String alias = generateAlias();
+        String cvu = numberGenerator.generateCvu();
+        String alias = numberGenerator.generateAlias();
 
         Account account = Account.builder()
                 .userId(userId)
@@ -38,40 +54,54 @@ public class AccountService {
 
         Account savedAccount = accountRepository.save(account);
 
-        return mapToDto(savedAccount);
-
-
+        return accountMapper.toAccountDto(savedAccount);
     }
 
-    private String generateCvu() {
 
-        Random random = new Random();
-        StringBuilder cvu = new StringBuilder();
-        for (int i = 0; i < 22; i++) {
-            cvu.append(random.nextInt(10));
-        }
-        return cvu.toString();
-
+    public AccountDto findAccountById(Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException(id));
+        return accountMapper.toAccountDto(account);
     }
 
-    private String generateAlias () {
-        Random random = new Random();
-        String w1 = WORDS[random.nextInt(WORDS.length)];
-        String w2 = WORDS[random.nextInt(WORDS.length)];
-        String w3 = WORDS[random.nextInt(WORDS.length)];
-        return w1 + "." + w2 + "." + w3;
+
+    public AccountDto findAccountByUserId(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new AccountNotFoundException(userId));
+        return accountMapper.toAccountDto(account);
     }
 
-    private AccountDto mapToDto (Account account) {
+    // ============ CARDS ============
 
-        return AccountDto.builder()
-                .id(account.getId())
-                .userId(account.getUserId())
-                .cvu(account.getCvu())
-                .alias(account.getAlias())
-                .balance(account.getBalance())
-                .build();
 
+    public CardResponseDto addCardToAccount(Long accountId, CardCreateRequestDto createRequest) throws Exception {
+
+        findAccountById(accountId);
+
+        return cardService.addCard(accountId, createRequest);
     }
 
+
+    public List<CardResponseDto> getAccountCards(Long accountId) {
+
+        findAccountById(accountId);
+
+        return cardService.getCardsByAccountId(accountId);
+    }
+
+
+    public CardResponseDto getAccountCard(Long accountId, Long cardId) {
+        // Validate account exists
+        findAccountById(accountId);
+
+        return cardService.getCardById(cardId, accountId);
+    }
+
+
+    public void deleteAccountCard(Long accountId, Long cardId) {
+        // Validate account exists
+        findAccountById(accountId);
+
+        cardService.deleteCard(cardId, accountId);
+    }
 }
