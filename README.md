@@ -77,7 +77,7 @@ Toda la interacción debe hacerse a través del **Puerto 8080** (Gateway).
 
 * **Registro:** `POST http://localhost:8080/users/register`
     * *Crea usuario en Keycloak + Perfil en BD + Cuenta Bancaria (CVU/Alias).*
-* **Login:** `POST http://localhost:8080/auth/login`
+* **Login:** `POST http://localhost:8080/users/login`
     * *Devuelve JWT Access Token y Refresh Token.*
 * **Logout:** `POST http://localhost:8080/users/logout`
     * *Requiere `refreshToken` en el body.*
