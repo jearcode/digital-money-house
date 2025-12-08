@@ -1,4 +1,4 @@
-package com.dmh.userservice.dto;
+package com.dmh.userservice.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class AccountDto {
+public class AccountResponseDto {
 
     private Long id;
     private Long userId;

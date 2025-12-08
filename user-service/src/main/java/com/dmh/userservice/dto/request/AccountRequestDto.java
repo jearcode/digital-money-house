@@ -1,4 +1,4 @@
-package com.dmh.userservice.dto;
+package com.dmh.userservice.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
