@@ -1,4 +1,4 @@
-package com.dmh.userservice.dto;
+package com.dmh.userservice.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

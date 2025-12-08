@@ -1,5 +1,6 @@
 package com.dmh.accountservice.configuration.security;
 
+import com.dmh.accountservice.configuration.KeycloakRealmRoleConverter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
