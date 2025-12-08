@@ -235,4 +235,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(AliasAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleAliasAlreadyExists(
+            AliasAlreadyExistsException e,
+            HttpServletRequest request) {
+
+        logger.warn("Conflict: ", e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .error("ALIAS_ALREADY_EXISTS")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(HtmlUtils.htmlEscape(request.getRequestURI()))
+                .method(request.getMethod())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
 }

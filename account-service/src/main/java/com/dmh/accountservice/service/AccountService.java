@@ -1,10 +1,13 @@
 package com.dmh.accountservice.service;
 
+import com.dmh.accountservice.dto.request.AccountRequestDto;
 import com.dmh.accountservice.dto.request.CardCreateRequestDto;
+import com.dmh.accountservice.dto.request.UpdateAccountRequestDto;
 import com.dmh.accountservice.dto.response.AccountDto;
 import com.dmh.accountservice.dto.response.CardResponseDto;
 import com.dmh.accountservice.entity.Account;
 import com.dmh.accountservice.exception.AccountNotFoundException;
+import com.dmh.accountservice.exception.AliasAlreadyExistsException;
 import com.dmh.accountservice.exception.UserAlreadyHasAccountException;
 import com.dmh.accountservice.mapper.AccountDtoMapper;
 import com.dmh.accountservice.repository.AccountRepository;
@@ -69,6 +72,27 @@ public class AccountService {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new AccountNotFoundException(userId));
         return accountMapper.toAccountDto(account);
+    }
+
+    public AccountDto updateAccount(Long id, UpdateAccountRequestDto accountRequest) {
+
+        AccountDto accountDto = findAccountById(id);
+        String newAlias = accountRequest.getAlias();
+
+
+        if (accountDto.getAlias().equals(newAlias)) {
+            return accountDto;
+        }
+
+        if (accountRepository.existsAccountByAlias(newAlias)) {
+            throw new AliasAlreadyExistsException(newAlias);
+        }
+
+        Account account = accountMapper.toAccountEntity(accountDto);
+        account.setAlias(newAlias);
+
+        return accountMapper.toAccountDto(accountRepository.save(account));
+
     }
 
     // ============ CARDS ============

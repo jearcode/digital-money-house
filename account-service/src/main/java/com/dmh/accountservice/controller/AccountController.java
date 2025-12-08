@@ -2,12 +2,14 @@ package com.dmh.accountservice.controller;
 
 import com.dmh.accountservice.dto.request.AccountRequestDto;
 import com.dmh.accountservice.dto.request.CardCreateRequestDto;
+import com.dmh.accountservice.dto.request.UpdateAccountRequestDto;
 import com.dmh.accountservice.dto.response.AccountDto;
 import com.dmh.accountservice.dto.response.CardResponseDto;
 import com.dmh.accountservice.entity.Transaction;
 import com.dmh.accountservice.service.AccountService;
 import com.dmh.accountservice.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -84,6 +86,34 @@ public class AccountController {
     @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #userId)")
     public ResponseEntity<AccountDto> getAccountByUserId(@PathVariable Long userId) {
         AccountDto accountDto = accountService.findAccountByUserId(userId);
+        return ResponseEntity.ok(accountDto);
+    }
+
+
+    @Operation(
+            summary = "Update account alias",
+            description = "Updates the alias of an existing account. Only the account alias can be modified. " +
+                    "The alias must follow the pattern: word.word.word (e.g., BeanRx.JavRex.SrvCore). " +
+                    "Accessible by SERVICE role or the account owner."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Account alias updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid alias format or validation error"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse( responseCode = "409", description = "Alias already exists - Another account is already using this alias"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - You don't have permission to update this account")
+    })
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #id)")
+    public ResponseEntity<AccountDto> updateAccount(
+            @PathVariable
+            @Schema(description = "Account ID to update", example = "1")
+            Long id,
+            @RequestBody
+            @Valid
+            UpdateAccountRequestDto request) {
+
+        AccountDto accountDto = accountService.updateAccount(id, request);
         return ResponseEntity.ok(accountDto);
     }
 
