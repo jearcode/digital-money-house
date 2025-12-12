@@ -12,8 +12,9 @@ import lombok.*;
 public class UpdateAccountRequestDto {
 
     @NotBlank(message = "Alias is required")
-    @Pattern(regexp = "^[a-zA-Z0-9]{3,}\\.[a-zA-Z0-9]{3,}\\.[a-zA-Z0-9]{3,}$",
-            message = "Alias must follow the pattern: word.word.word (e.g., BeanRx.JavRex.SrvCore)")
+    @Pattern(
+            regexp = "^[a-zA-Z]{3,}\\.[a-zA-Z]{3,}\\.[a-zA-Z]{3,}$",
+            message = "Alias must contain only letters and follow pattern: word.word.word")
     @Schema(description = "Account alias in format word.word.word (auto-generated)", example = "BeanRx.JavRex.SrvCore")
     private String alias;
 }
