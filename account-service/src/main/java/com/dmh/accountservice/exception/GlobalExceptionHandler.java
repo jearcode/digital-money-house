@@ -23,7 +23,6 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleAccountNotFound(
             AccountNotFoundException ex,
@@ -252,6 +251,23 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NoTransactionFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoTransactionFound (NoTransactionFoundException e,
+                                                                   HttpServletRequest request) {
+        logger.warn("Not Found", e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("NO_TRANSACTION_FOUND")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(HtmlUtils.htmlEscape(request.getRequestURI()))
+                .method(request.getMethod())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
 }

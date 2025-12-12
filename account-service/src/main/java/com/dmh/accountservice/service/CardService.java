@@ -54,6 +54,15 @@ public class CardService {
         return mapper.toCardResponseDto(card);
     }
 
+    public Card getCardEntityById (Long cardId, Long accountId) {
+
+        Card card = cardRepository.findById(cardId).orElseThrow(
+                () -> new CardNotFoundException(cardId, accountId)
+        );
+
+        return card;
+    }
+
     public void deleteCard(Long cardId, Long accountId) {
         Card card = cardRepository.findByIdAndAccountId(cardId, accountId)
                 .orElseThrow(() -> new CardNotFoundException(cardId, accountId));

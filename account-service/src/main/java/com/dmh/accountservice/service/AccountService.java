@@ -1,15 +1,19 @@
 package com.dmh.accountservice.service;
 
-import com.dmh.accountservice.dto.request.AccountRequestDto;
 import com.dmh.accountservice.dto.request.CardCreateRequestDto;
+import com.dmh.accountservice.dto.request.DepositRequestDto;
 import com.dmh.accountservice.dto.request.UpdateAccountRequestDto;
 import com.dmh.accountservice.dto.response.AccountDto;
 import com.dmh.accountservice.dto.response.CardResponseDto;
+import com.dmh.accountservice.dto.response.TransactionResponseDto;
 import com.dmh.accountservice.entity.Account;
+import com.dmh.accountservice.entity.Card;
 import com.dmh.accountservice.exception.AccountNotFoundException;
 import com.dmh.accountservice.exception.AliasAlreadyExistsException;
 import com.dmh.accountservice.exception.UserAlreadyHasAccountException;
 import com.dmh.accountservice.mapper.AccountDtoMapper;
+import com.dmh.accountservice.mapper.TransactionDtoMapper;
+import com.dmh.accountservice.provider.DepositProvider;
 import com.dmh.accountservice.repository.AccountRepository;
 import com.dmh.accountservice.util.AccountNumberGenerator;
 import org.springframework.stereotype.Service;
@@ -24,16 +28,21 @@ public class AccountService {
     private final AccountDtoMapper accountMapper;
     private final CardService cardService;
     private final AccountNumberGenerator numberGenerator;
+    private DepositProviderStrategy depositStrategy;
+    private TransactionDtoMapper transactionDtoMapper;
 
     public AccountService(
             AccountRepository accountRepository,
             AccountDtoMapper accountMapper,
             CardService cardService,
-            AccountNumberGenerator numberGenerator) {
+            AccountNumberGenerator numberGenerator,
+            DepositProviderStrategy depositStrategy, TransactionDtoMapper transactionDtoMapper) {
         this.accountRepository = accountRepository;
         this.accountMapper = accountMapper;
         this.cardService = cardService;
         this.numberGenerator = numberGenerator;
+        this.depositStrategy = depositStrategy;
+        this.transactionDtoMapper = transactionDtoMapper;
     }
 
 
@@ -128,4 +137,17 @@ public class AccountService {
 
         cardService.deleteCard(cardId, accountId);
     }
+
+    public TransactionResponseDto processDeposit (Long id, DepositRequestDto depositRequest) {
+
+        Account account = accountMapper.toAccountEntity(findAccountById(id));
+
+        Card card = cardService.getCardEntityById(depositRequest.getCardId(), account.getId());
+
+        DepositProvider provider = depositStrategy.getProvider(card.getType());
+
+        return transactionDtoMapper.toDto(provider.processDeposit(account, card, depositRequest.getAmount()));
+
+    }
+
 }
