@@ -13,7 +13,7 @@ public class UpdateAccountRequestDto {
 
     @NotBlank(message = "Alias is required")
     @Pattern(
-            regexp = "^[a-zA-Z]{3,}\\.[a-zA-Z]{3,}\\.[a-zA-Z]{3,}$",
+            regexp = "^[a-zA-Z]{2,}\\.[a-zA-Z]{2,}\\.[a-zA-Z]{2,}$",
             message = "Alias must contain only letters and follow pattern: word.word.word")
     @Schema(description = "Account alias in format word.word.word (auto-generated)", example = "BeanRx.JavRex.SrvCore")
     private String alias;
