@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    Optional<List<Transaction>> findAllByAccountIdOrderByTransactionDateDesc(Long accountId);
+    List<Transaction> findAllByAccountIdOrderByTransactionDateDesc(Long accountId);
 
+    Optional<Transaction> findByAccountIdAndId(Long accountId, Long id);
 }

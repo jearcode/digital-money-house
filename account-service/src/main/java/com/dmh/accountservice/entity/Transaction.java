@@ -3,7 +3,6 @@ package com.dmh.accountservice.entity;
 import com.dmh.accountservice.model.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -28,6 +27,9 @@ public class Transaction {
     @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
 
+    @Column(name = "origin", length = 30)
+    private String origin;
+
     private String description;
 
     @Column(name = "transaction_date", nullable = false)
@@ -35,5 +37,4 @@ public class Transaction {
 
     @Column(name = "destination_account")
     private String destinationAccount;
-
 }

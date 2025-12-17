@@ -2,10 +2,11 @@ package com.dmh.accountservice.controller;
 
 import com.dmh.accountservice.dto.request.AccountRequestDto;
 import com.dmh.accountservice.dto.request.CardCreateRequestDto;
+import com.dmh.accountservice.dto.request.DepositRequestDto;
 import com.dmh.accountservice.dto.request.UpdateAccountRequestDto;
 import com.dmh.accountservice.dto.response.AccountDto;
 import com.dmh.accountservice.dto.response.CardResponseDto;
-import com.dmh.accountservice.entity.Transaction;
+import com.dmh.accountservice.dto.response.TransactionResponseDto;
 import com.dmh.accountservice.service.AccountService;
 import com.dmh.accountservice.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -117,23 +118,45 @@ public class AccountController {
         return ResponseEntity.ok(accountDto);
     }
 
-    // ============ TRANSACTION ENDPOINTS ============
+    // ============ ACTIVITY ENDPOINTS (FROMERLY TRANSACTIONS) ============
 
     @Operation(
-            summary = "Get all transactions for an account",
-            description = "Returns a list of transactions ordered by most recent first. Accessible by admin or account owner."
-    )
+            summary = "Get account activity history",
+            description = "Returns full list of transactions ordered by most recent first. Accessible by admir o account owner.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Transactions retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Account not found"),
             @ApiResponse(responseCode = "403", description = "Forbidden - You don't have permission")
     })
-    @GetMapping("/{id}/transactions")
+    @GetMapping("/{id}/activities")
     @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #id)")
-    public ResponseEntity<List<Transaction>> getAccountTransactions(@PathVariable Long id) {
-        List<Transaction> transactions = transactionService.findAllTransactionsByAccountId(id);
-        return ResponseEntity.ok(transactions);
+    public ResponseEntity<List<TransactionResponseDto>> getAccountActivity(@PathVariable Long id) {
+        List<TransactionResponseDto> activity = transactionService.findAllTransactionsByAccountId(id);
+        return ResponseEntity.ok(activity);
     }
+
+    @Operation(summary = "Get specific activity detail")
+    @GetMapping("/{id}/activities/{activityId}")
+    @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #id)")
+    public ResponseEntity<TransactionResponseDto> getActivityDetail(@PathVariable Long id,
+            @PathVariable Long activityId) {
+
+        TransactionResponseDto transaction = transactionService.findTransactionByIdAndAccountId(activityId, id);
+        return ResponseEntity.ok(transaction);
+    }
+
+    // ============ DEPOSIT ============
+    @Operation(summary = "Process deposit")
+    @PostMapping("/{id}/deposits")
+    @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #id)")
+    public ResponseEntity<TransactionResponseDto> processDeposit (@PathVariable Long id,
+                                                                  @Valid @RequestBody DepositRequestDto depositRequest) {
+
+        TransactionResponseDto transaction = accountService.processDeposit(id, depositRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
+
+    }
+
 
     // ============ CARD ENDPOINTS ============
 
