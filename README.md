@@ -1,5 +1,10 @@
 # 🏦 Digital Money House - Backend Microservices
 
+> [!IMPORTANT]
+> ### 🚀 Actualizaciones Sprint 3
+> Se han implementado cambios importantes en la nomenclatura de la API y nuevos módulos de transferencias. **[Ver detalles de la actualización aquí](#-actualizaciones-sprint-3)**.
+
+
 Backend de la billetera virtual **Digital Money House**. Este proyecto implementa una arquitectura de microservicios robusta, escalable y segura, diseñada para gestionar usuarios, cuentas bancarias, tarjetas y transacciones en tiempo real.
 
 ---
@@ -70,6 +75,12 @@ El sistema se divide en dominios funcionales independientes que se comunican a t
 
 ---
 
+## 🎯 Actualizaciones Sprint 3
+
+En esta etapa se han integrado funcionalidades críticas de movimientos de dinero y se ha estandarizado la nomenclatura del dominio:
+
+*   **Renombramiento de Transacciones:** Todos los endpoints de `transactions` han migrado a `/activities` para reflejar mejor el historial de movimientos del usuario.
+*   **Próximamente:** Implementación de transferencias entre cuentas mediante Alias/CVU.
 
 # 📚 Documentación de API (Endpoints)
 
