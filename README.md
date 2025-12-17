@@ -371,7 +371,7 @@ Authorization: Bearer {access_token}
   "cardholderName": "JUAN PEREZ",
   "expirationDate": "12/28",
   "cvv": "123",
-  "type": "DEBIT"
+  "type": "DEBIT_CARD"
 }
 ```
 
@@ -384,7 +384,7 @@ Authorization: Bearer {access_token}
   "lastFourDigits": "0366",
   "cardholderName": "JUAN PEREZ",
   "expirationDate": "12/28",
-  "type": "DEBIT",
+  "type": "DEBIT_CARD",
   "isActive": true,
   "createdAt": "2025-12-08T16:43:57.151049"
 }
@@ -505,13 +505,17 @@ Sin cuerpo de respuesta.
 
 ---
 
-## 5. Transacciones
+## 5. Actividades
 
-### 5.1 Consultar Transacciones
+> **Actualización importante:** el historial que antes se consultaba como **Transacciones** ahora se expone como **Actividades**.  
+> Endpoint anterior: `GET /accounts/{id}/transactions`  
+> Endpoint actualizado: `GET /accounts/{id}/activities`
 
-Lista el historial de transacciones de la cuenta ordenadas por fecha descendente.
+### 5.1 Obtener todas las actividades de una cuenta
 
-- **Endpoint:** `GET /accounts/{id}/transactions`
+Lista el historial de actividades de la cuenta ordenadas por fecha descendente.
+
+- **Endpoint:** `GET /accounts/{id}/activities`
 - **Acceso:** Authenticated (Token Bearer)
 - **Autorización:** Propietario del recurso o rol SERVICE/ADMIN
 
@@ -537,7 +541,7 @@ Authorization: Bearer {access_token}
     "id": 2,
     "accountId": 15,
     "amount": -25.00,
-    "transactionType": "WITHDRAWAL",
+    "transactionType": "TRANSFER_SENT",
     "description": "Transfer to external account",
     "transactionDate": "2025-12-08T10:20:15Z",
     "balance": 1450.50
@@ -547,10 +551,89 @@ Authorization: Bearer {access_token}
 
 **Errores Posibles:**
 - `401 Unauthorized` - Token ausente o inválido
-- `403 Forbidden` - Sin permisos para acceder a las transacciones
+- `403 Forbidden` - Sin permisos para acceder a las actividades
 - `404 Not Found` - Cuenta no existe
 
 ---
+
+### 5.2 Obtener una actividad específica de una cuenta
+
+Devuelve el detalle de una actividad puntual asociada a una cuenta.
+
+- **Endpoint:** `GET /accounts/{id}/activities/{activityId}`
+- **Acceso:** Authenticated (Token Bearer)
+- **Autorización:** Propietario del recurso o rol SERVICE/ADMIN
+
+**Request Headers:**
+```
+Authorization: Bearer {access_token}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "id": 2,
+  "accountId": 15,
+  "amount": -25.00,
+  "transactionType": "TRANSFER_SENT",
+  "description": "Transfer to external account",
+  "transactionDate": "2025-12-08T10:20:15Z",
+  "balance": 1450.50
+}
+```
+
+**Errores Posibles:**
+- `401 Unauthorized` - Token ausente o inválido
+- `403 Forbidden` - Sin permisos para acceder a la actividad
+- `404 Not Found` - Cuenta no existe o la actividad no pertenece/no existe
+
+---
+
+## 6. Depósitos
+
+### 6.1 Realizar un depósito con tarjeta
+
+Registra un depósito a la cuenta utilizando una tarjeta asociada.
+
+- **Endpoint:** `POST /accounts/{id}/deposits`
+- **Acceso:** Authenticated (Token Bearer)
+- **Autorización:** Propietario del recurso o rol SERVICE/ADMIN
+- **Content-Type:** `application/json`
+
+**Request Headers:**
+```
+Authorization: Bearer {access_token}
+```
+
+**Request Body (ejemplo):**
+
+```json
+{
+  "amount": 1000.00,
+  "cardId": 1
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 10,
+  "accountId": 15,
+  "amount": 1000.00,
+  "transactionType": "DEPOSIT",
+  "description": "Deposit from card",
+  "transactionDate": "2025-12-10T12:00:00Z",
+  "balance": 2450.50
+}
+```
+
+**Errores Posibles:**
+- `400 Bad Request` - Monto inválido o request incompleto
+- `401 Unauthorized` - Token ausente o inválido
+- `403 Forbidden` - Sin permisos para depositar en la cuenta
+- `404 Not Found` - Cuenta no existe (por ejemplo: `Account with id {id} not found.`)
 
 ## 📝 Notas Importantes
 
@@ -668,13 +751,29 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 
 ---
 
-## 💸 Módulo: Transacciones
+## 🧾 Módulo: Actividades
 
-| ID | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
-|:---|:---|:---|:---|:---|:-------|
-| CP-026 | Listado de transacciones de cuenta con historial | Cuenta existe y tiene al menos una transacción registrada, token autorizado | `GET /accounts/{id}/transactions` | 200 OK | ✅      |
-| CP-027 | Rechazo de consulta de transacciones con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `GET /accounts/{id}/transactions` | 403 Forbidden | ✅      |
-| CP-028 | Manejo de error por cuenta inexistente en transacciones | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/transactions` | 404 Not Found | ✅      |
+> **Actualización:** donde antes decía **Transacciones**, ahora el módulo y endpoints se denominan **Actividades**.  
+> Se reemplaza `GET /accounts/{id}/transactions` por `GET /accounts/{id}/activities`.
+
+### Obtener todas las actividades
+
+| ID     | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
+|:-------|:---|:---|:---|:---|:---|
+| CP-026 | Listado de actividades de cuenta con historial | Cuenta existe y tiene al menos una actividad registrada, token autorizado | `GET /accounts/{id}/activities` | 200 OK | ✅ |
+| CP-027 | Listado de actividades con colección vacía | Cuenta existe pero sin actividades, token autorizado | `GET /accounts/{id}/activities` | 200 OK (array vacío) | ✅ |
+| CP-028 | Rechazo de consulta de actividades con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `GET /accounts/{id}/activities` | 403 Forbidden | ✅ |
+| CP-050 | Manejo de error por cuenta inexistente en actividades | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/activities` | 404 Not Found | ✅ |
+
+### Obtener una actividad específica
+
+| ID     | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
+|:-------|:---|:---|:---|:---|:---|
+| CP-051 | Consulta exitosa de actividad por IDs | Cuenta existe, activityId existe y pertenece a la cuenta, token autorizado | `GET /accounts/{id}/activities/{activityId}` | 200 OK | ✅ |
+| CP-052 | Rechazo de consulta de actividad sin autenticación | Request sin header Authorization o con token ausente | `GET /accounts/{id}/activities/{activityId}` | 401 Unauthorized | ✅ |
+| CP-053 | Rechazo de consulta de actividad con token no autorizado | Token válido pero sin permisos sobre la cuenta | `GET /accounts/{id}/activities/{activityId}` | 403 Forbidden | ✅ |
+| CP-054 | Manejo de error por cuenta inexistente en consulta de actividad | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/activities/{activityId}` | 404 Not Found | ✅ |
+| CP-055 | Manejo de error por actividad inexistente o no perteneciente | activityId no existe o no está asociada a la cuenta indicada | `GET /accounts/{id}/activities/{99}` | 404 Not Found | ✅ |
 
 ---
 
@@ -722,5 +821,17 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 | CP-049 | Rechazo de eliminación sin autenticación | Request sin header Authorization o con token ausente | `DELETE /accounts/{id}/cards/{id}` | 401 Unauthorized | ✅ |
 
 ---
+
+## 💰 Módulo: Depósitos
+
+| ID     | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
+|:-------|:---|:---|:---|:---|:---|
+| CP-056 | Depósito exitoso con tarjeta | Cuenta existe, tarjeta asociada válida, monto > 0, token autorizado | `POST /accounts/{id}/deposits` | 201 Created | ✅ |
+| CP-057 | Rechazo de depósito sin autenticación | Request sin header Authorization o con token ausente | `POST /accounts/{id}/deposits` | 401 Unauthorized | ✅ |
+| CP-058 | Rechazo de depósito con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `POST /accounts/{id}/deposits` | 403 Forbidden | ✅ |
+| CP-059 | Manejo de error por cuenta inexistente en depósito | ID de cuenta no existe en la base de datos | `POST /accounts/{99}/deposits` | 404 Not Found | ✅ |
+| CP-060 | Validación de monto inválido | amount = 0, negativo o nulo | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
+| CP-061 | Validación de request incompleto | Falta `cardId` o falta `amount` | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
+
 
 Hecho con ☕🫘
