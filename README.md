@@ -668,8 +668,8 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 
 ### 📊 Resumen General
 
-- **Total de casos:** 55
-- **Aprobados:** 55 ✅
+- **Total de casos:** 67
+- **Aprobados:** 67 ✅
 - **Fallidos:** 0 ❌
 - **Tasa de éxito:** 100.0%
 
@@ -763,17 +763,17 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 | CP-026 | Listado de actividades de cuenta con historial | Cuenta existe y tiene al menos una actividad registrada, token autorizado | `GET /accounts/{id}/activities` | 200 OK | ✅ |
 | CP-027 | Listado de actividades con colección vacía | Cuenta existe pero sin actividades, token autorizado | `GET /accounts/{id}/activities` | 200 OK (array vacío) | ✅ |
 | CP-028 | Rechazo de consulta de actividades con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `GET /accounts/{id}/activities` | 403 Forbidden | ✅ |
-| CP-050 | Manejo de error por cuenta inexistente en actividades | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/activities` | 404 Not Found | ✅ |
+| CP-056 | Manejo de error por cuenta inexistente en actividades | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/activities` | 404 Not Found | ✅ |
 
 ### Obtener una actividad específica
 
 | ID     | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
 |:-------|:---|:---|:---|:---|:---|
-| CP-051 | Consulta exitosa de actividad por IDs | Cuenta existe, activityId existe y pertenece a la cuenta, token autorizado | `GET /accounts/{id}/activities/{activityId}` | 200 OK | ✅ |
-| CP-052 | Rechazo de consulta de actividad sin autenticación | Request sin header Authorization o con token ausente | `GET /accounts/{id}/activities/{activityId}` | 401 Unauthorized | ✅ |
-| CP-053 | Rechazo de consulta de actividad con token no autorizado | Token válido pero sin permisos sobre la cuenta | `GET /accounts/{id}/activities/{activityId}` | 403 Forbidden | ✅ |
-| CP-054 | Manejo de error por cuenta inexistente en consulta de actividad | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/activities/{activityId}` | 404 Not Found | ✅ |
-| CP-055 | Manejo de error por actividad inexistente o no perteneciente | activityId no existe o no está asociada a la cuenta indicada | `GET /accounts/{id}/activities/{99}` | 404 Not Found | ✅ |
+| CP-057 | Consulta exitosa de actividad por IDs | Cuenta existe, activityId existe y pertenece a la cuenta, token autorizado | `GET /accounts/{id}/activities/{activityId}` | 200 OK | ✅ |
+| CP-058 | Rechazo de consulta de actividad sin autenticación | Request sin header Authorization o con token ausente | `GET /accounts/{id}/activities/{activityId}` | 401 Unauthorized | ✅ |
+| CP-059 | Rechazo de consulta de actividad con token no autorizado | Token válido pero sin permisos sobre la cuenta | `GET /accounts/{id}/activities/{activityId}` | 403 Forbidden | ✅ |
+| CP-060 | Manejo de error por cuenta inexistente en consulta de actividad | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/activities/{activityId}` | 404 Not Found | ✅ |
+| CP-061 | Manejo de error por actividad inexistente o no perteneciente | activityId no existe o no está asociada a la cuenta indicada | `GET /accounts/{id}/activities/{99}` | 404 Not Found | ✅ |
 
 ---
 
@@ -826,12 +826,12 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 
 | ID     | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
 |:-------|:---|:---|:---|:---|:---|
-| CP-056 | Depósito exitoso con tarjeta | Cuenta existe, tarjeta asociada válida, monto > 0, token autorizado | `POST /accounts/{id}/deposits` | 201 Created | ✅ |
-| CP-057 | Rechazo de depósito sin autenticación | Request sin header Authorization o con token ausente | `POST /accounts/{id}/deposits` | 401 Unauthorized | ✅ |
-| CP-058 | Rechazo de depósito con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `POST /accounts/{id}/deposits` | 403 Forbidden | ✅ |
-| CP-059 | Manejo de error por cuenta inexistente en depósito | ID de cuenta no existe en la base de datos | `POST /accounts/{99}/deposits` | 404 Not Found | ✅ |
-| CP-060 | Validación de monto inválido | amount = 0, negativo o nulo | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
-| CP-061 | Validación de request incompleto | Falta `cardId` o falta `amount` | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
+| CP-062 | Depósito exitoso con tarjeta | Cuenta existe, tarjeta asociada válida, monto > 0, token autorizado | `POST /accounts/{id}/deposits` | 201 Created | ✅ |
+| CP-063 | Rechazo de depósito sin autenticación | Request sin header Authorization o con token ausente | `POST /accounts/{id}/deposits` | 401 Unauthorized | ✅ |
+| CP-064 | Rechazo de depósito con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `POST /accounts/{id}/deposits` | 403 Forbidden | ✅ |
+| CP-065 | Manejo de error por cuenta inexistente en depósito | ID de cuenta no existe en la base de datos | `POST /accounts/{99}/deposits` | 404 Not Found | ✅ |
+| CP-066 | Validación de monto inválido | amount = 0, negativo o nulo | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
+| CP-067 | Validación de request incompleto | Falta `cardId` o falta `amount` | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
 
 
 Hecho con ☕🫘
