@@ -2,6 +2,7 @@ package com.dmh.accountservice.service;
 
 import com.dmh.accountservice.dto.request.CardCreateRequestDto;
 import com.dmh.accountservice.dto.request.DepositRequestDto;
+import com.dmh.accountservice.dto.request.TransferRequestDto;
 import com.dmh.accountservice.dto.request.UpdateAccountRequestDto;
 import com.dmh.accountservice.dto.response.AccountDto;
 import com.dmh.accountservice.dto.response.CardResponseDto;
@@ -10,12 +11,15 @@ import com.dmh.accountservice.entity.Account;
 import com.dmh.accountservice.entity.Card;
 import com.dmh.accountservice.exception.AccountNotFoundException;
 import com.dmh.accountservice.exception.AliasAlreadyExistsException;
+import com.dmh.accountservice.exception.SelfTransferNotAllowedException;
 import com.dmh.accountservice.exception.UserAlreadyHasAccountException;
 import com.dmh.accountservice.mapper.AccountDtoMapper;
 import com.dmh.accountservice.mapper.TransactionDtoMapper;
 import com.dmh.accountservice.provider.DepositProvider;
+import com.dmh.accountservice.provider.TransferProvider;
 import com.dmh.accountservice.repository.AccountRepository;
 import com.dmh.accountservice.util.AccountNumberGenerator;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,6 +32,7 @@ public class AccountService {
     private final AccountDtoMapper accountMapper;
     private final CardService cardService;
     private final AccountNumberGenerator numberGenerator;
+    private final TransferProvider transferProvider;
     private DepositProviderStrategy depositStrategy;
     private TransactionDtoMapper transactionDtoMapper;
 
@@ -36,13 +41,14 @@ public class AccountService {
             AccountDtoMapper accountMapper,
             CardService cardService,
             AccountNumberGenerator numberGenerator,
-            DepositProviderStrategy depositStrategy, TransactionDtoMapper transactionDtoMapper) {
+            DepositProviderStrategy depositStrategy, TransactionDtoMapper transactionDtoMapper, TransferProvider transferProvider) {
         this.accountRepository = accountRepository;
         this.accountMapper = accountMapper;
         this.cardService = cardService;
         this.numberGenerator = numberGenerator;
         this.depositStrategy = depositStrategy;
         this.transactionDtoMapper = transactionDtoMapper;
+        this.transferProvider = transferProvider;
     }
 
 
@@ -72,14 +78,14 @@ public class AccountService {
 
     public AccountDto findAccountById(Long id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException(id));
+                .orElseThrow(() -> AccountNotFoundException.byId(id));
         return accountMapper.toAccountDto(account);
     }
 
 
     public AccountDto findAccountByUserId(Long userId) {
         Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new AccountNotFoundException(userId));
+                .orElseThrow(() -> AccountNotFoundException.byUserId(userId));
         return accountMapper.toAccountDto(account);
     }
 
@@ -148,6 +154,69 @@ public class AccountService {
 
         return transactionDtoMapper.toDto(provider.processDeposit(account, card, depositRequest.getAmount()));
 
+    }
+
+    public Account findAccountByCvu (String cvu) {
+
+        Account account = accountRepository.findAccountByCvu(cvu)
+                .orElseThrow(
+                        () -> AccountNotFoundException.byCvu(cvu)
+                );
+
+        return account;
+
+    }
+
+    public Account findAccountByAlias (String alias) {
+
+        Account account = accountRepository.findAccountByAlias(alias)
+                .orElseThrow(
+                        () -> AccountNotFoundException.byAlias(alias)
+                );
+
+        return account;
+    }
+
+    public Account findAccountEntityById (Long id) {
+
+        Account account = accountRepository.findAccountById(id)
+                .orElseThrow(
+                        () -> AccountNotFoundException.byId(id)
+                );
+
+        return account;
+
+    }
+
+    public TransactionResponseDto processTransfer(Long id, @Valid TransferRequestDto transferRequest) {
+
+        BigDecimal amount = transferRequest.getAmount();
+        String description = transferRequest.getDescription();
+
+        Account sender = findAccountEntityById(id);
+
+        if (transferRequest.getDestination().equals(sender.getCvu()) ||
+                transferRequest.getDestination().equals(sender.getAlias())) {
+            throw new SelfTransferNotAllowedException(transferRequest.getDestination());
+        }
+
+        Account recipient;
+
+        if (isCvu(transferRequest.getDestination())) {
+            recipient = findAccountByCvu(transferRequest.getDestination());
+        } else {
+            recipient = findAccountByAlias(transferRequest.getDestination());
+        }
+
+        TransactionResponseDto transaction = transferProvider.processTransfer(sender, recipient, amount, description);
+
+        return transaction;
+
+    }
+
+
+    private boolean isCvu(String destination) {
+        return destination != null && destination.length() == 22 && destination.matches("\\d+");
     }
 
 }
