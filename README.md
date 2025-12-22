@@ -810,8 +810,8 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 
 ### 📊 Resumen General
 
-- **Total de casos:** 67
-- **Aprobados:** 67 ✅
+- **Total de casos:** 88
+- **Aprobados:** 88 ✅
 - **Fallidos:** 0 ❌
 - **Tasa de éxito:** 100.0%
 
