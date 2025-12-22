@@ -21,7 +21,7 @@ Backend de la billetera virtual **Digital Money House**. Este proyecto implement
     - [5. Actividades](#5-actividades)
     - [6. Depósitos](#6-depósitos)
     - [7. Transferencias](#7-transferencias)
-- [Casos de Prueba y QA](#casos-de-prueba-y-qa)
+- [Casos de Prueba y QA](#-casos-de-prueba-y-qa)
 
 ---
 
@@ -810,8 +810,8 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 
 ### 📊 Resumen General
 
-- **Total de casos:** 67
-- **Aprobados:** 67 ✅
+- **Total de casos:** 88
+- **Aprobados:** 88 ✅
 - **Fallidos:** 0 ❌
 - **Tasa de éxito:** 100.0%
 
