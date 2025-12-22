@@ -1,8 +1,8 @@
 # 🏦 Digital Money House - Backend Microservices
 
 > [!IMPORTANT]
-> ### Cambios en la API
-> Se han implementado cambios importantes en la nomenclatura de la API. **[Ver detalles de la actualización aquí](#-actualizaciones-sprint-3)**.
+> ### Actualización Sprint 4
+> Se han implementado nuevas funcionalidades en la API. **[Ver detalles de la actualización aquí](#-actualizaciones-sprint-4)**.
 
 Backend de la billetera virtual **Digital Money House**. Este proyecto implementa una arquitectura de microservicios robusta, escalable y segura, diseñada para gestionar usuarios, cuentas bancarias, tarjetas y transacciones en tiempo real.
 
@@ -18,6 +18,9 @@ Backend de la billetera virtual **Digital Money House**. Este proyecto implement
     - [Usuarios (User Service)](#2-usuarios-user-service)
     - [Cuentas (Account Service)](#3-cuentas-account-service)
     - [Tarjetas (Account Service)](#4-tarjetas-account-service)
+    - [Actividades (Account Service)](#5-actividades-account-service)
+    - [Depositos (Account Service)](#5-depositivo-account-service)
+    - [Transferencias (Account Service)](#5-transferencias-account-service)
 5. [Casos de Prueba y QA](#-casos-de-prueba-y-qa)
 
 ---
@@ -74,13 +77,22 @@ El sistema se divide en dominios funcionales independientes que se comunican a t
 
 ---
 
-## 🎯 Actualizaciones Sprint 3
+## 🎯 Actualizaciones Sprint 4
 
-En esta etapa se han actualizado los endpoints y se ha añadido la funcionalidad de realizar depósitos mediante tarjetas.
+En esta etapa se ha implementado la funcionalidad completa de **transferencias entre cuentas** utilizando CVU o Alias.
 
-*   **Renombramiento de Transacciones:** Todos los endpoints de `transactions` han migrado a `/activities` para reflejar mejor el historial de movimientos del usuario.
-*   **Próximamente:** Implementación de transferencias entre cuentas mediante Alias/CVU.
+### Nuevas Funcionalidades
 
+*   **Transferencias entre Cuentas:** Los usuarios pueden realizar transferencias a otras cuentas utilizando CVU (22 dígitos) o Alias (formato palabra.palabra.palabra).
+*   **Historial de Destinatarios:** Nuevo endpoint para consultar los últimos destinatarios de transferencias realizadas.
+*   **Nuevos Tipos de Transacciones:** Se agregaron `TRANSFER_SENT` (transferencia enviada) y `TRANSFER_RECEIVED` (transferencia recibida) al enum `TransactionType`.
+*   **Validaciones Mejoradas:**
+    - Validación de fondos insuficientes
+    - Prevención de auto-transferencias
+    - Búsqueda automática por CVU o Alias
+*   **Nuevas Excepciones:**
+    - `InsufficientFundsException` (422 Unprocessable Entity)
+    - `SelfTransferNotAllowedException` (422 Unprocessable Entity)
 ---
 
 
@@ -648,6 +660,123 @@ Authorization: Bearer {access_token}
 - `403 Forbidden` - Sin permisos para depositar en la cuenta
 - `404 Not Found` - Cuenta no existe (por ejemplo: `Account with id {id} not found.`)
 
+
+
+---
+
+## 7. Transferencias
+
+### 7.1 Realizar una transferencia entre cuentas
+
+Transfiere dinero desde la cuenta autenticada hacia otra cuenta usando CVU o Alias como destino.
+
+- **Endpoint:** `POST /accounts/{id}/transfers`
+- **Acceso:** Authenticated (Token Bearer)
+- **Autorización:** Propietario del recurso o rol SERVICE/ADMIN
+- **Content-Type:** `application/json`
+
+**Request Headers:**
+```
+Authorization: Bearer {access_token}
+```
+
+
+**Request Body:**
+
+```json
+{
+  "destination": "sun.moon.star",
+  "amount": 500.00,
+  "description": "Pago de servicios"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 45,
+  "accountId": 1,
+  "amount": -500.00,
+  "transactionType": "TRANSFER_SENT",
+  "description": "Pago de servicios",
+  "transactionDate": "2025-12-22T15:30:00Z",
+  "balance": 1000.50
+}
+```
+
+
+**Ejemplo con CVU:**
+
+```json
+{
+  "destination": "0000001234567890123456",
+  "amount": 1500.00,
+  "description": "Transferencia a cuenta empresarial"
+}
+```
+
+
+**Errores Posibles:**
+- `400 Bad Request` - Datos inválidos (monto negativo o cero, formato de CVU/Alias incorrecto)
+- `401 Unauthorized` - Token ausente o inválido
+- `403 Forbidden` - Sin permisos para realizar transferencias desde esta cuenta
+- `404 Not Found` - Cuenta origen no existe o cuenta destino no encontrada
+- `422 Unprocessable Entity (INSUFFICIENT_FUNDS)` - Saldo insuficiente para realizar la transferencia
+- `422 Unprocessable Entity (SELF_TRANSFER_NOT_ALLOWED)` - No se permiten transferencias a la misma cuenta
+
+---
+
+### 7.2 Obtener Últimos Destinatarios de Transferencias
+
+Devuelve una lista de los últimos destinatarios únicos a los que se han realizado transferencias desde la cuenta.
+
+- **Endpoint:** `GET /accounts/{id}/transfers/recipients`
+- **Acceso:** Authenticated (Token Bearer)
+- **Autorización:** Propietario del recurso o rol SERVICE/ADMIN
+
+**Request Headers:**
+```
+Authorization: Bearer {access_token}
+```
+
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "userId": 25,
+    "accountId": 10,
+    "cvu": "0000009876543210987654",
+    "alias": "blue.sky.ocean",
+    "firstName": "María",
+    "lastName": "González"
+  },
+  {
+    "userId": 18,
+    "accountId": 8,
+    "cvu": "0000001122334455667788",
+    "alias": "red.fire.mountain",
+    "firstName": "Carlos",
+    "lastName": "Rodríguez"
+  }
+]
+```
+
+**Errores Posibles:**
+- `401 Unauthorized` - Token ausente o inválido
+- `403 Forbidden` - Sin permisos para acceder a los destinatarios de esta cuenta
+- `404 Not Found` - Cuenta no existe
+
+**Notas:**
+- La lista se ordena por fecha de transferencia más reciente
+- Solo se incluyen destinatarios únicos (sin duplicados)
+- Si no se han realizado transferencias, retorna un array vacío `[]`
+
+
+
+
 ## 📝 Notas Importantes
 
 ### Autenticación
@@ -846,5 +975,39 @@ Resumen de ejecución automatizada con Apidog (Sprint 2).
 | CP-066 | Validación de monto inválido | amount = 0, negativo o nulo | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
 | CP-067 | Validación de request incompleto | Falta `cardId` o falta `amount` | `POST /accounts/{id}/deposits` | 400 Bad Request | ✅ |
 
+---
+
+## ⚡ Módulo: Transferencias
+
+### Transferencias entre Cuentas
+
+| ID | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
+|:---|:---|:---|:---|:---|:---|
+| CP-068 | Transferencia exitosa usando CVU | Cuenta origen existe, saldo suficiente, CVU destino válido y existente, token autorizado | `POST /accounts/{id}/transfers` | 201 Created | ✅ |
+| CP-069 | Transferencia exitosa usando Alias | Cuenta origen existe, saldo suficiente, Alias destino válido y existente, token autorizado | `POST /accounts/{id}/transfers` | 201 Created | ✅ |
+| CP-070 | Rechazo por fondos insuficientes | Saldo de cuenta origen menor al monto solicitado para transferir | `POST /accounts/{id}/transfers` | 422 Unprocessable Entity - INSUFFICIENT_FUNDS | ✅ |
+| CP-071 | Rechazo de auto-transferencia | `destination` apunta a la misma cuenta que realiza la transferencia | `POST /accounts/{id}/transfers` | 422 Unprocessable Entity - SELF_TRANSFER_NOT_ALLOWED | ✅ |
+| CP-072 | Validación de monto inválido en transferencia | `amount` es 0, negativo o nulo | `POST /accounts/{id}/transfers` | 400 Bad Request | ✅ |
+| CP-073 | Manejo de cuenta destino inexistente por CVU | CVU proporcionado no existe en el sistema | `POST /accounts/{id}/transfers` | 404 Not Found | ✅ |
+| CP-074 | Manejo de cuenta destino inexistente por Alias | Alias proporcionado no existe en el sistema | `POST /accounts/{id}/transfers` | 404 Not Found | ✅ |
+| CP-075 | Validación de formato CVU inválido | CVU con menos/más de 22 dígitos o caracteres no numéricos | `POST /accounts/{id}/transfers` | 400 Bad Request | ✅ |
+| CP-076 | Validación de formato Alias inválido | Alias no cumple con el patrón `palabra.palabra.palabra` | `POST /accounts/{id}/transfers` | 400 Bad Request | ✅ |
+| CP-077 | Rechazo de transferencia sin autenticación | Request sin header Authorization o con token ausente | `POST /accounts/{id}/transfers` | 401 Unauthorized | ✅ |
+| CP-078 | Rechazo de transferencia con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta origen | `POST /accounts/{id}/transfers` | 403 Forbidden | ✅ |
+| CP-079 | Manejo de error por cuenta origen inexistente | ID de cuenta origen no existe en la base de datos | `POST /accounts/{99}/transfers` | 404 Not Found | ✅ |
+| CP-080 | Validación de campos requeridos ausentes | Request sin `destination` o `amount` | `POST /accounts/{id}/transfers` | 400 Bad Request | ✅ |
+| CP-081 | Verificación de transacciones duales creadas | Transferencia exitosa debe crear dos registros: `TRANSFER_SENT` en origen y `TRANSFER_RECEIVED` en destino | `POST /accounts/{id}/transfers` + consulta de actividades en ambas cuentas | 201 Created + registros en ambas cuentas | ✅ |
+
+### Historial de Destinatarios
+
+| ID | Caso de Prueba | Precondiciones | Endpoint | Resultado Esperado | Estado |
+|:---|:---|:---|:---|:---|:---|
+| CP-082 | Consulta exitosa de destinatarios con historial | Cuenta ha realizado al menos una transferencia, token autorizado | `GET /accounts/{id}/transfers/recipients` | 200 OK + array con destinatarios | ✅ |
+| CP-083 | Consulta de destinatarios sin historial | Cuenta existe pero no ha realizado transferencias, token autorizado | `GET /accounts/{id}/transfers/recipients` | 200 OK (array vacío) | ✅ |
+| CP-084 | Verificación de destinatarios únicos | Cuenta ha realizado múltiples transferencias al mismo destinatario | `GET /accounts/{id}/transfers/recipients` | 200 OK + destinatario aparece una sola vez | ✅ |
+| CP-085 | Rechazo de consulta sin autenticación | Request sin header Authorization o con token ausente | `GET /accounts/{id}/transfers/recipients` | 401 Unauthorized | ✅ |
+| CP-086 | Rechazo de consulta con token no autorizado | Token válido pero perteneciente a usuario sin permisos sobre la cuenta | `GET /accounts/{id}/transfers/recipients` | 403 Forbidden | ✅ |
+| CP-087 | Manejo de error por cuenta inexistente | ID de cuenta no existe en la base de datos | `GET /accounts/{99}/transfers/recipients` | 404 Not Found | ✅ |
+| CP-088 | Ordenamiento por fecha descendente | Cuenta con múltiples destinatarios | `GET /accounts/{id}/transfers/recipients` | 200 OK + lista ordenada por transferencia más reciente | ✅ |
 
 Hecho con ☕🫘
