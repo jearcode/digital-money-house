@@ -21,7 +21,7 @@ Backend de la billetera virtual **Digital Money House**. Este proyecto implement
     - [5. Actividades](#5-actividades)
     - [6. Depósitos](#6-depósitos)
     - [7. Transferencias](#7-transferencias)
-- [Casos de Prueba y QA](#casos-de-prueba-y-qa)
+- [Casos de Prueba y QA](#-casos-de-prueba-y-qa)
 
 ---
 
