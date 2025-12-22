@@ -10,18 +10,18 @@ Backend de la billetera virtual **Digital Money House**. Este proyecto implement
 
 ## 📑 Índice de Contenido
 
-1. [Arquitectura del Proyecto](#-arquitectura-del-proyecto)
-2. [Stack Tecnológico](#-stack-tecnológico)
-3. [Instalación y Ejecución](#-instalación-y-ejecución)
-4. [Documentación de API (Endpoints)](#-documentación-de-api-endpoints)
-    - [Autenticación (Auth Service)](#1-autenticación-auth-service)
-    - [Usuarios (User Service)](#2-usuarios-user-service)
-    - [Cuentas (Account Service)](#3-cuentas-account-service)
-    - [Tarjetas (Account Service)](#4-tarjetas-account-service)
-    - [Actividades (Account Service)](#5-actividades-account-service)
-    - [Depositos (Account Service)](#5-depositivo-account-service)
-    - [Transferencias (Account Service)](#5-transferencias-account-service)
-5. [Casos de Prueba y QA](#-casos-de-prueba-y-qa)
+- [Arquitectura del Proyecto](#arquitectura-del-proyecto)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Instalación y Ejecución](#instalación-y-ejecución)
+- [Documentación de API](#documentación-de-api)
+    - [1. Autenticación y Registro](#1-autenticación-y-registro)
+    - [2. Gestión de Perfil](#2-gestión-de-perfil)
+    - [3. Gestión de Cuenta](#3-gestión-de-cuenta)
+    - [4. Gestión de Tarjetas](#4-gestión-de-tarjetas)
+    - [5. Actividades](#5-actividades)
+    - [6. Depósitos](#6-depósitos)
+    - [7. Transferencias](#7-transferencias)
+- [Casos de Prueba y QA](#casos-de-prueba-y-qa)
 
 ---
 
