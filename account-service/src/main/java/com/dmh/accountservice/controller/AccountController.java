@@ -1,11 +1,9 @@
 package com.dmh.accountservice.controller;
 
-import com.dmh.accountservice.dto.request.AccountRequestDto;
-import com.dmh.accountservice.dto.request.CardCreateRequestDto;
-import com.dmh.accountservice.dto.request.DepositRequestDto;
-import com.dmh.accountservice.dto.request.UpdateAccountRequestDto;
+import com.dmh.accountservice.dto.request.*;
 import com.dmh.accountservice.dto.response.AccountDto;
 import com.dmh.accountservice.dto.response.CardResponseDto;
+import com.dmh.accountservice.dto.response.RecipientDto;
 import com.dmh.accountservice.dto.response.TransactionResponseDto;
 import com.dmh.accountservice.service.AccountService;
 import com.dmh.accountservice.service.TransactionService;
@@ -234,4 +232,31 @@ public class AccountController {
         accountService.deleteAccountCard(id, cardId);
         return ResponseEntity.noContent().build();
     }
+
+    // ============ TRANSFER ENDPOINTS ============
+    @Operation(
+            summary = "Transfer to account",
+            description = "Transfer money to account"
+    )
+    @PostMapping("/{id}/transfers")
+    @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #id)")
+    public ResponseEntity<TransactionResponseDto> processTransfer (
+            @PathVariable Long id,
+            @Valid @RequestBody TransferRequestDto transferRequest) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(accountService.processTransfer(id, transferRequest));
+
+    }
+
+
+    @GetMapping("/{id}/transfers/recipients")
+    @PreAuthorize("hasRole('SERVICE') or @accountSecurity.isOwner(authentication, #id)")
+    public ResponseEntity<List<RecipientDto>> getLastRecipients (
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(transactionService.getLastRecipients(id));
+
+    }
+
+
 }

@@ -270,4 +270,40 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientFunds (InsufficientFundsException e,
+                                                                  HttpServletRequest request) {
+        logger.warn("Insufficient Funds", e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .error("INSUFFICIENT_FUNDS")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(HtmlUtils.htmlEscape(request.getRequestURI()))
+                .method(request.getMethod())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+    }
+
+    @ExceptionHandler(SelfTransferNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientFunds (SelfTransferNotAllowedException e,
+                                                                  HttpServletRequest request) {
+        logger.warn("Self transfer not allowed", e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .error("SELF_TRANSFER_NOT_ALLOWED")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(HtmlUtils.htmlEscape(request.getRequestURI()))
+                .method(request.getMethod())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+    }
+
 }
